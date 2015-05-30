@@ -94,33 +94,3 @@ while True:
     print "\nReceived connection. Awaiting client details..."
     data = clientsock.recv(2048)
     header = data
-    print "Received header"
-    header = pickle.loads(data)
-    CID = header.get('UID')
-    KEY = header.get('KEY')
-
-    t = (CID,)
-    conn = sqlite3.connect('PieMessage.db')
-    c = conn.cursor()
-    c.execute('SELECT EXISTS(SELECT * FROM clients WHERE CID=?)',t)
-    output = c.fetchone()
-    output_str = str(output)
-
-    if output_str[1]=='0':
-        print "Client does not exist in database.\nAdding client\n"
-        c.execute('INSERT INTO clients VALUES (''?'',''?'',1)',(CID,KEY))
-        conn.commit()
-        print "Done\n"
-    else:
-        print "Client exists in database.\nSetting to online\n"
-        c.execute('UPDATE clients SET ONLINE = 1, CID = ? WHERE CID = ?',(KEY,CID,))
-        conn.commit()
-        print "Done\n"
-    conn.close()
-    newthread = ClientThread(ip,port,CID,KEY)
-    newthread.start()
-    threads.append(newthread)
-    clients[CID] = newthread
-
-for t in threads:
-    t.join()
