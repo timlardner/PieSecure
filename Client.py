@@ -33,6 +33,8 @@ print message
 def recv():
     while True:
         data = server.recv(8)
+        if not data:
+            continue
         data = server.recv(int(data))
         message = pickle.loads(data)
         if message.get('command') == 'message':
@@ -69,8 +71,10 @@ def message(CID, text):
         while CID not in keys.keys():
             time.sleep(1)
             if i>5:
+                print "Did not receive a public key"
                 return
         pubkey = keys.get(CID)
+    print "Beginning to send message..."
     encrypted_text = pubkey.encrypt(text, 32)
     to_send = {'command':'message','CID':CID,'Content':encrypted_text}
     n=str(len(pickle.dumps(to_send)))
@@ -82,6 +86,7 @@ def disconnect():
     n=str(len(pickle.dumps(to_send)))
     server.send(n.zfill(8))
     server.send(pickle.dumps(to_send))
+    print "Quitting..."
     sys.exit()
 
 
@@ -89,12 +94,11 @@ Thread(target=recv).start()
 
 while True:
     time.sleep(3)
-
-    message(24,'Hello')
-    message(UID,'This is a test')
-    time.sleep(10)
-
-    disconnect()
+    UID = raw_input("Enter a UID to send a message\n")
+    if UID=='exit':
+        disconnect()
+    text = raw_input("Enter some text to send\n")
+    message(UID,text)
 
 
 

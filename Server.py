@@ -14,8 +14,10 @@ class ClientThread(threading.Thread):
         message = "You are client "+self.CID
         clientsock.send("\nWelcome to the server. "+message+"\nYou may now begin sending commands.\n")
         data = "dummydata"
-        while len(data):
+        while True:
             data = clientsock.recv(8)
+            if not data:
+                continue
             data = clientsock.recv(int(data))
             try:
                 message = pickle.loads(data)
@@ -51,7 +53,7 @@ class ClientThread(threading.Thread):
                         clientsock.send(pickle.dumps(message))
                     else:
                         online_thread = clients.get(CID)
-                        online_thread.message(CID,message.get('Content'))
+                        online_thread.message(self.CID,message.get('Content'))
                         message = {'command':'response','status':1}
                         n=str(len(pickle.dumps(message)))
                         clientsock.send(n.zfill(8))
@@ -69,10 +71,9 @@ class ClientThread(threading.Thread):
             except:
                 print " "
 
-        print "Client disconnected..."
-    def message(self,CID,text):
+    def message(self, CID, text):
         print "Sending message to client..."
-        message = {'command':'message','CID':CID,'content':text}
+        message = {'command':'message', 'CID':CID, 'content':text}
         n=str(len(pickle.dumps(message)))
         clientsock.send(n.zfill(8))
         clientsock.send(pickle.dumps(message))
